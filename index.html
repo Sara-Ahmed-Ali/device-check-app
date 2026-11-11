@@ -32,7 +32,7 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 12mm 15mm 12mm 15mm;
+        margin: 10mm 15mm 10mm 15mm;
       }
       body {
         background-color: #ffffff !important;
@@ -52,13 +52,11 @@
         padding: 0 !important;
         margin: 0 !important;
       }
-      /* الحفاظ على ألوان الحدود والجدول أثناء الطباعة */
       table, th, td {
         border-color: #000000 !important;
       }
     }
 
-    /* تخصيص مظهر الحقول عند حدوث خطأ Validation باللون الأحمر */
     input:invalid:not(:placeholder-shown) {
       border-color: #ef4444 !important;
       --tw-ring-color: rgba(239, 68, 68, 0.2) !important;
@@ -68,59 +66,278 @@
     }
   </style>
 </head>
-<body class="bg-slate-900 font-sans text-slate-100 min-h-screen flex flex-col items-center justify-start p-3 sm:p-6 md:p-8">
+<body class="bg-slate-900 font-sans text-slate-100 min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 md:p-8">
 
-  <!-- ================= 1. شاشة إدخال البيانات (التحكم) ================= -->
-  <div id="inputSection" class="no-print w-full max-w-xl bg-slate-800/90 backdrop-blur border border-slate-700/80 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 transition-all duration-300">
-    <div class="flex items-center gap-3 border-b border-slate-700 pb-4 sm:pb-5 mb-5 sm:mb-6">
-      <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xl shrink-0">
-        📋
+  <!-- ================= حاوية مركزية عامة لجميع العناصر ================= -->
+  <div class="w-full flex flex-col items-center justify-center max-w-4xl mx-auto">
+
+    <!-- ================= 1. شاشة إدخال البيانات (التحكم) ================= -->
+    <div id="inputSection" class="no-print w-full max-w-xl bg-slate-800/90 backdrop-blur border border-slate-700/80 rounded-2xl shadow-2xl p-5 sm:p-8 transition-all duration-300">
+      <div class="flex items-center gap-3 border-b border-slate-700 pb-5 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xl shrink-0">
+          📋
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold text-white">إصدار نموذج فحص جهاز</h1>
+          <p class="text-xs text-slate-400 mt-0.5">أدخل اسم الجهاز والسيريال لتجهيز الورقة للطباعة</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-lg sm:text-xl font-bold text-white">إصدار نموذج فحص جهاز</h1>
-        <p class="text-xs text-slate-400 mt-0.5">أدخل اسم الجهاز والسيريال لتجهيز الورقة للطباعة</p>
-      </div>
+
+      <form id="deviceForm" onsubmit="handleGenerateSheet(event)" class="space-y-4 sm:space-y-5" autocomplete="off" novalidate>
+        <!-- اسم الجهاز -->
+        <div>
+          <label for="deviceName" class="block text-sm font-semibold text-slate-300 mb-2">اسم الجهاز</label>
+          <input 
+            type="text" 
+            id="deviceName" 
+            required 
+            maxLength="100"
+            placeholder="مثال: جهاز تنفس صناعي / موديل X200" 
+            oninput="clearError('deviceName')"
+            oninvalid="this.setCustomValidity('يرجى إدخال اسم الجهاز بشكل صحيح')"
+            oninput="this.setCustomValidity('')"
+            class="w-full bg-slate-900/90 text-white placeholder-slate-500 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
+          >
+          <span id="deviceNameError" class="error-message hidden text-rose-500 text-xs mt-1.5 font-medium">برجاء إدخال اسم الجهاز.</span>
+        </div>
+
+        <!-- الرقم التسلسلي -->
+        <div>
+          <label for="serialNumber" class="block text-sm font-semibold text-slate-300 mb-2">الرقم التسلسلي (Serial Number)</label>
+          <input 
+            type="text" 
+            id="serialNumber" 
+            required 
+            maxLength="60"
+            placeholder="مثال: SN-88392019-EG" 
+            oninput="clearError('serialNumber')"
+            oninvalid="this.setCustomValidity('يرجى إدخال الرقم التسلسلي للجهاز')"
+            oninput="this.setCustomValidity('')"
+            class="w-full bg-slate-900/90 text-white placeholder-slate-500 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all font-mono text-sm tracking-wider"
+          >
+          <span id="serialNumberError" class="error-message hidden text-rose-500 text-xs mt-1.5 font-medium">برجاء إدخال الرقم التسلسلي (Serial Number).</span>
+        </div>
+
+        <!-- زر التوليد -->
+        <button 
+          type="submit" 
+          class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 text-sm mt-2 cursor-pointer"
+        >
+          <span>توليد نموذج الفحص</span>
+          <svg class="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+      </form>
     </div>
 
-    <form id="deviceForm" onsubmit="handleGenerateSheet(event)" class="space-y-4 sm:space-y-5" autocomplete="off" novalidate>
-      <!-- اسم الجهاز -->
-      <div>
-        <label for="deviceName" class="block text-sm font-semibold text-slate-300 mb-2">اسم الجهاز</label>
-        <input 
-          type="text" 
-          id="deviceName" 
-          required 
-          maxLength="100"
-          placeholder="مثال: جهاز تنفس صناعي / موديل X200" 
-          oninput="clearError('deviceName')"
-          oninvalid="this.setCustomValidity('يرجى إدخال اسم الجهاز بشكل صحيح')"
-          oninput="this.setCustomValidity('')"
-          class="w-full bg-slate-900/90 text-white placeholder-slate-500 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
-        >
-        <span id="deviceNameError" class="error-message hidden text-rose-500 text-xs mt-1.5 font-medium">برجاء إدخال اسم الجهاز.</span>
-      </div>
 
-      <!-- الرقم التسلسلي -->
-      <div>
-        <label for="serialNumber" class="block text-sm font-semibold text-slate-300 mb-2">الرقم التسلسلي (Serial Number)</label>
-        <input 
-          type="text" 
-          id="serialNumber" 
-          required 
-          maxLength="60"
-          placeholder="مثال: SN-88392019-EG" 
-          oninput="clearError('serialNumber')"
-          oninvalid="this.setCustomValidity('يرجى إدخال الرقم التسلسلي للجهاز')"
-          oninput="this.setCustomValidity('')"
-          class="w-full bg-slate-900/90 text-white placeholder-slate-500 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all font-mono text-sm tracking-wider"
-        >
-        <span id="serialNumberError" class="error-message hidden text-rose-500 text-xs mt-1.5 font-medium">برجاء إدخال الرقم التسلسلي (Serial Number).</span>
-      </div>
-
-      <!-- زر التوليد -->
+    <!-- ================= 2. شريط الأدوات العلوي بعد التوليد ================= -->
+    <div id="actionsBar" class="no-print hidden w-full flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-800 border border-slate-700 p-4 rounded-2xl mb-6 shadow-xl">
       <button 
-        type="submit" 
-        class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 text-sm mt-2 cursor-pointer"
+        onclick="handleReset()" 
+        class="w-full sm:w-auto bg-slate-700 hover:bg-slate-600 text-slate-200 px-5 py-2.5 rounded-xl font-semibold transition text-sm flex items-center justify-center gap-2 cursor-pointer"
       >
-        <span>توليد نموذج الفحص</span>
-        <svg class="w
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        جهاز جديد
+      </button>
+      
+      <button 
+        onclick="window.print()" 
+        class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-bold px-7 py-2.5 rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 text-sm cursor-pointer"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+        </svg>
+        طباعة الورقة (Print)
+      </button>
+    </div>
+
+
+    <!-- ================= 3. نموذج الورقة الجاهزة للطباعة ================= -->
+    <div id="printSheet" class="print-area hidden w-full bg-white text-slate-900 border border-slate-300 rounded-2xl shadow-2xl p-6 sm:p-10 transition-all overflow-x-auto">
+      
+      <!-- هيدر المؤسسة والورقة -->
+      <header class="border-b-2 border-slate-900 pb-5 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
+        <div>
+          <span class="text-xs font-bold tracking-widest text-slate-500 uppercase block mb-1">نموذج رسمـي رقم #CHK-2026</span>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">تقرير الفحص والمعاينة الفنية</h2>
+        </div>
+        <div class="text-right sm:text-left text-xs font-medium text-slate-600 space-y-1">
+          <div>تاريخ الإصدار: <span id="displayDate" class="font-bold text-slate-900"></span></div>
+          <div>كود النموذج: <span class="font-mono text-slate-700">FORM-TECH-01</span></div>
+        </div>
+      </header>
+
+      <!-- المربع المضيء لبيانات الجهاز -->
+      <section class="border-2 border-slate-900 rounded-xl p-4 mb-6 bg-slate-50 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="border-b md:border-b-0 md:border-l border-slate-300 pb-3 md:pb-0 md:pl-4">
+          <span class="block text-xs font-bold text-slate-500 mb-1">اسم الجهاز:</span>
+          <span id="displayDeviceName" class="text-lg sm:text-xl font-black text-slate-900 leading-snug break-words"></span>
+        </div>
+        <div class="md:pr-2">
+          <span class="block text-xs font-bold text-slate-500 mb-1">الرقم التسلسلي (S/N):</span>
+          <span id="displaySerialNumber" class="text-lg sm:text-xl font-bold font-mono tracking-wider text-slate-900 break-all"></span>
+        </div>
+      </section>
+
+      <!-- جدول الفحص الثابت -->
+      <section class="mb-8">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-1">
+          <h3 class="text-sm sm:text-base font-bold text-slate-900">بنود الفحص الفني التشغيلي:</h3>
+          <span class="text-xs text-slate-500 font-medium">( يُملأ بواسطة الفني المختص يدويًا )</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[550px] border-collapse border-2 border-slate-900 text-right text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-200 text-slate-900 font-bold border-b-2 border-slate-900">
+                <th class="border border-slate-400 p-2.5 sm:p-3 w-12 text-center">م</th>
+                <th class="border border-slate-400 p-2.5 sm:p-3">البند / المكون الخاضع للفحص</th>
+                <th class="border border-slate-400 p-2.5 sm:p-3 w-24 sm:w-28 text-center">يعمل ( ✓ )</th>
+                <th class="border border-slate-400 p-2.5 sm:p-3 w-24 sm:w-28 text-center">لا يعمل ( ✕ )</th>
+                <th class="border border-slate-400 p-2.5 sm:p-3 w-36 sm:w-48">ملاحظات الفني</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-400 font-medium text-slate-800">
+              <tr>
+                <td class="border border-slate-400 p-2.5 sm:p-3 text-center font-bold">1</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3 font-semibold">حالة الموتور والحركة الميكانيكية</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-2.5 sm:p-3 text-center font-bold">2</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3 font-semibold">التوصيلات الكهربائية ودائرة الباور الرئيسية</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-2.5 sm:p-3 text-center font-bold">3</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3 font-semibold">أزرار التحكم ولوحة الشاشة / الإشارات</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-2.5 sm:p-3 text-center font-bold">4</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3 font-semibold">حساسات الأمان والتوقف عند الطوارئ</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-2.5 sm:p-3 text-center font-bold">5</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3 font-semibold">مستوى الصوت / الحرارة والاهتزاز الطبيعي</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-2.5 sm:p-3 text-center font-bold">6</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3 font-semibold">سلامة الهيكل الخارجي والنظافة الفنية</td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+                <td class="border border-slate-400 p-2.5 sm:p-3"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- التوقيعات والاعتمادات -->
+      <footer class="pt-6 border-t border-slate-400 grid grid-cols-1 sm:grid-cols-2 gap-6 text-center text-xs sm:text-sm font-semibold">
+        <div>
+          <p class="mb-8 sm:mb-10 text-slate-800">توقيع الفني القائم بالفحص:</p>
+          <p class="text-slate-400 font-mono">...................................................</p>
+        </div>
+        <div>
+          <p class="mb-8 sm:mb-10 text-slate-800">اعتماد المهندس المسؤول / المباشر:</p>
+          <p class="text-slate-400 font-mono">...................................................</p>
+        </div>
+      </footer>
+
+    </div>
+
+  </div>
+
+  <!-- JavaScript (Clean Code & XSS Protection) -->
+  <script>
+    function sanitizeInput(str) {
+      const temp = document.createElement('div');
+      temp.textContent = str.trim();
+      return temp.innerHTML;
+    }
+
+    function clearError(fieldId) {
+      const input = document.getElementById(fieldId);
+      const errorText = document.getElementById(fieldId + 'Error');
+      
+      if (input.value.trim() !== '') {
+        input.classList.remove('border-rose-500', 'focus:border-rose-500', 'focus:ring-rose-500/20');
+        input.classList.add('border-slate-700', 'focus:border-indigo-500', 'focus:ring-indigo-500/20');
+        if (errorText) errorText.classList.add('hidden');
+      }
+    }
+
+    function handleGenerateSheet(event) {
+      event.preventDefault();
+
+      const deviceNameInput = document.getElementById('deviceName');
+      const serialNumberInput = document.getElementById('serialNumber');
+
+      let isValid = true;
+      
+      if (!deviceNameInput.value.trim()) {
+        deviceNameInput.classList.add('border-rose-500');
+        document.getElementById('deviceNameError').classList.remove('hidden');
+        isValid = false;
+      }
+
+      if (!serialNumberInput.value.trim()) {
+        serialNumberInput.classList.add('border-rose-500');
+        document.getElementById('serialNumberError').classList.remove('hidden');
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      const cleanName = sanitizeInput(deviceNameInput.value);
+      const cleanSerial = sanitizeInput(serialNumberInput.value);
+      const today = new Date().toLocaleDateString('ar-EG', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+
+      document.getElementById('displayDeviceName').innerHTML = cleanName;
+      document.getElementById('displaySerialNumber').innerHTML = cleanSerial;
+      document.getElementById('displayDate').innerText = today;
+
+      document.getElementById('inputSection').classList.add('hidden');
+      document.getElementById('actionsBar').classList.remove('hidden');
+      document.getElementById('printSheet').classList.remove('hidden');
+    }
+
+    function handleReset() {
+      document.getElementById('deviceForm').reset();
+      
+      ['deviceName', 'serialNumber'].forEach(id => {
+        const input = document.getElementById(id);
+        const err = document.getElementById(id + 'Error');
+        input.classList.remove('border-rose-500');
+        if(err) err.classList.add('hidden');
+      });
+
+      document.getElementById('inputSection').classList.remove('hidden');
+      document.getElementById('actionsBar').classList.add('hidden');
+      document.getElementById('printSheet').classList.add('hidden');
+      document.getElementById('deviceName').focus();
+    }
+  </script>
+</body>
+</html>
