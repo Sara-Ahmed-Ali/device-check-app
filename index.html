@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+  <title>نظام اصدار نموذج فحص الأجهزة</title>
+  
+  <!-- Google Fonts: Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Tajawal', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    /* CSS Print Rules - للطباعة الدقيقة A4 */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 12mm 15mm 12mm 15mm;
+      }
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Tajawal', sans-serif !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-area {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      /* الحفاظ على ألوان الحدود والجدول أثناء الطباعة */
+      table, th, td {
+        border-color: #000000 !important;
+      }
+    }
+
+    /* تخصيص مظهر الحقول عند حدوث خطأ Validation باللون الأحمر */
+    input:invalid:not(:placeholder-shown) {
+      border-color: #ef4444 !important;
+      --tw-ring-color: rgba(239, 68, 68, 0.2) !important;
+    }
+    input:invalid:not(:placeholder-shown) ~ .error-message {
+      display: block !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 font-sans text-slate-100 min-h-screen flex flex-col items-center justify-start p-3 sm:p-6 md:p-8">
+
+  <!-- ================= 1. شاشة إدخال البيانات (التحكم) ================= -->
+  <div id="inputSection" class="no-print w-full max-w-xl bg-slate-800/90 backdrop-blur border border-slate-700/80 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 transition-all duration-300">
+    <div class="flex items-center gap-3 border-b border-slate-700 pb-4 sm:pb-5 mb-5 sm:mb-6">
+      <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xl shrink-0">
+        📋
+      </div>
+      <div>
+        <h1 class="text-lg sm:text-xl font-bold text-white">إصدار نموذج فحص جهاز</h1>
+        <p class="text-xs text-slate-400 mt-0.5">أدخل اسم الجهاز والسيريال لتجهيز الورقة للطباعة</p>
+      </div>
+    </div>
+
+    <form id="deviceForm" onsubmit="handleGenerateSheet(event)" class="space-y-4 sm:space-y-5" autocomplete="off" novalidate>
+      <!-- اسم الجهاز -->
+      <div>
+        <label for="deviceName" class="block text-sm font-semibold text-slate-300 mb-2">اسم الجهاز</label>
+        <input 
+          type="text" 
+          id="deviceName" 
+          required 
+          maxLength="100"
+          placeholder="مثال: جهاز تنفس صناعي / موديل X200" 
+          oninput="clearError('deviceName')"
+          oninvalid="this.setCustomValidity('يرجى إدخال اسم الجهاز بشكل صحيح')"
+          oninput="this.setCustomValidity('')"
+          class="w-full bg-slate-900/90 text-white placeholder-slate-500 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
+        >
+        <span id="deviceNameError" class="error-message hidden text-rose-500 text-xs mt-1.5 font-medium">برجاء إدخال اسم الجهاز.</span>
+      </div>
+
+      <!-- الرقم التسلسلي -->
+      <div>
+        <label for="serialNumber" class="block text-sm font-semibold text-slate-300 mb-2">الرقم التسلسلي (Serial Number)</label>
+        <input 
+          type="text" 
+          id="serialNumber" 
+          required 
+          maxLength="60"
+          placeholder="مثال: SN-88392019-EG" 
+          oninput="clearError('serialNumber')"
+          oninvalid="this.setCustomValidity('يرجى إدخال الرقم التسلسلي للجهاز')"
+          oninput="this.setCustomValidity('')"
+          class="w-full bg-slate-900/90 text-white placeholder-slate-500 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all font-mono text-sm tracking-wider"
+        >
+        <span id="serialNumberError" class="error-message hidden text-rose-500 text-xs mt-1.5 font-medium">برجاء إدخال الرقم التسلسلي (Serial Number).</span>
+      </div>
+
+      <!-- زر التوليد -->
+      <button 
+        type="submit" 
+        class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 text-sm mt-2 cursor-pointer"
+      >
+        <span>توليد نموذج الفحص</span>
+        <svg class="w
